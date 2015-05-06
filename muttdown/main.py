@@ -4,6 +4,7 @@ import argparse
 import sys
 import smtplib
 import re
+import os.path
 
 import email
 import email.iterators
@@ -101,10 +102,16 @@ def smtp_connection(c):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config_file', type=argparse.FileType('r'), required=True)
-    parser.add_argument('-p', '--print-message', action='store_true')
+    parser.add_argument(
+        '-c', '--config_file', default=os.path.expanduser('~/.muttdown.yaml'),
+        type=argparse.FileType('r'), required=True,
+        help='Path to YAML config file (default %(default)s)'
+    )
+    parser.add_argument(
+        '-p', '--print-message', action='store_true',
+        help='Print the translated message to stdout instead of sending it'
+    )
     parser.add_argument('-f', '--envelope-from', required=True)
-    parser.add_argument('--capture-to')
     parser.add_argument('addresses', nargs='+')
     args = parser.parse_args()
 
@@ -112,11 +119,6 @@ def main():
     c.load(args.config_file)
 
     message = sys.stdin.read()
-
-    if args.capture_to:
-        with open(args.capture_to, 'w') as f:
-            f.write(message)
-        return
 
     mail = email.message_from_string(message)
 

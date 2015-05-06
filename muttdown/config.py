@@ -2,6 +2,8 @@ import copy
 import yaml
 import subprocess
 
+# largely copied from my earlier work in fakemtpd
+
 
 if hasattr(subprocess, 'check_output'):
     check_output = subprocess.check_output

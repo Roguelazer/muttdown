@@ -1,2 +1,2 @@
-markdown>=2.0
+Markdown>=2.0
 PyYAML>=3.0
