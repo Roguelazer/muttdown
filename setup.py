@@ -2,25 +2,48 @@
 import collections
 
 from setuptools import setup, find_packages
+import pip
 from pip.req import parse_requirements
+
+
+def _version_tuple(version_string):
+    return tuple(
+        (int(component) if all(x.isdigit() for x in component) else component)
+        for component
+        in version_string.split('.')
+    )
 
 
 def get_install_requirements():
 
     ReqOpts = collections.namedtuple(
         'ReqOpts',
-        ['skip_requirements_regex', 'default_vcs']
+        ['skip_requirements_regex', 'default_vcs', 'isolated_mode']
     )
 
-    opts = ReqOpts(None, 'git')
+    opts = ReqOpts(None, 'git', False)
 
     requires = []
     dependency_links = []
 
-    for ir in parse_requirements('requirements.txt', options=opts):
+    req_args = ['requirements.txt']
+    req_kwargs = {'options': opts}
+
+    pip_version_info = _version_tuple(pip.__version__)
+
+    if pip_version_info >= (6, 0):
+        from pip.download import PipSession
+        session = PipSession()
+        req_kwargs['session'] = session
+
+    for ir in parse_requirements(*req_args, **req_kwargs):
         if ir is not None:
-            if ir.url is not None:
-                dependency_links.append(str(ir.url))
+            if pip_version_info >= (6, 0):
+                if ir.link is not None:
+                    dependency_links.append(str(ir.url))
+            else:
+                if ir.url is not None:
+                    dependency_links.append(str(ir.url))
             if ir.req is not None:
                 requires.append(str(ir.req))
     return requires, dependency_links
