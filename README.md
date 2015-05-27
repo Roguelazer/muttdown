@@ -43,14 +43,16 @@ Muttdown's configuration file is written using [YAML][]. Example:
     smtp_ssl: false
     smtp_username: foo@bar.com
     smtp_password: foo
+    css_file: ~/.muttdown.css
 
 
 If you prefer not to put your password in plaintext in a configuration file, you can instead specify the `smtp_password_command` parameter to invoke a shell command to lookup your password. The command should output your password, followed by a newline, and no other text. On OS X, the following invocation will extract a generic "Password" entry with the application set to "mutt" and the title set to "foo@bar.com":
 
     smtp_password_command: security find-generic-password -w -s mutt -a foo@bar.com
 
-NOTE: If `smtp_ssl` is set to False, `muttdown` will do a non-SSL session and then invoke `STARTTLS`. If `smtp_ssl` is set to True, `muttdown` will do an SSL session from the get-go. There is no option to send mail in
-plaintext.
+NOTE: If `smtp_ssl` is set to False, `muttdown` will do a non-SSL session and then invoke `STARTTLS`. If `smtp_ssl` is set to True, `muttdown` will do an SSL session from the get-go. There is no option to send mail in plaintext.
+
+The `css_file` should be regular CSS styling blocks; we use [pynliner][] to inline all CSS rules for maximum client compatibility.
 
 Installation
 ------------
@@ -74,3 +76,4 @@ If the config path is not passed, it will assume `~/.muttdown.yaml`.
 [PyYAML]: http://pyyaml.org
 [Python-Markdown]: https://pypi.python.org/pypi/Markdown
 [mutt]: http://www.mutt.org
+[pynliner]: https://github.com/rennat/pynliner

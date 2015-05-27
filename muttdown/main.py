@@ -12,11 +12,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import markdown
+import pynliner
 
 from . import config
 
 
-def convert_one(part):
+def convert_one(part, config):
     try:
         text = part.get_payload(None, True)
         if not text.startswith('!m'):
@@ -24,19 +25,23 @@ def convert_one(part):
         text = re.sub('\s*!m\s*', '', text, re.M)
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature)
+            md = markdown.markdown(pre_signature, output_format="html5")
             md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
             md += '<br />'.join(signature.split('\n'))
             md += '</p></div>'
         else:
             md = markdown.markdown(text)
+        if config.css:
+            md = '<style>' + config.css + '</style>' + md
+            md = pynliner.fromString(md)
+        print(md)
         message = MIMEText(md, 'html')
         return message
     except Exception:
         return None
 
 
-def convert_tree(message):
+def convert_tree(message, config):
     """Recursively convert a potentially-multipart tree.
 
     Returns a tuple of (the converted tree, whether any markdown was found)
@@ -48,13 +53,13 @@ def convert_tree(message):
             # recurse into the non-signature part
             for part in message.get_payload():
                 if part.get_content_type() != 'application/pgp-signature':
-                    return convert_tree(part)
+                    return convert_tree(part, config)
         else:
             # it's multipart, but not signed. copy it!
             new_root = MIMEMultipart(message.get_content_subtype(), message.get_charset())
             did_conversion = False
             for part in message.get_payload():
-                converted_part, this_did_conversion = convert_tree(part)
+                converted_part, this_did_conversion = convert_tree(part, config)
                 did_conversion |= this_did_conversion
                 new_root.attach(converted_part)
             return new_root, did_conversion
@@ -64,14 +69,14 @@ def convert_tree(message):
         converted = None
         disposition = message.get('Content-Disposition', 'inline')
         if disposition == 'inline' and ct in ('text/plain', 'text/markdown'):
-            converted = convert_one(message)
+            converted = convert_one(message, config)
         if converted is not None:
             return converted, True
         return message, False
 
 
-def rebuild_multipart(mail):
-    converted, did_any_markdown = convert_tree(mail)
+def rebuild_multipart(mail, config):
+    converted, did_any_markdown = convert_tree(mail, config)
     if did_any_markdown:
         new_top = MIMEMultipart('alternative')
         for k, v in mail.items():
@@ -116,13 +121,18 @@ def main():
     args = parser.parse_args()
 
     c = config.Config()
-    c.load(args.config_file)
+    try:
+        c.load(args.config_file)
+    except config.ConfigError as e:
+        print('Error(s) in configuration %s:' % args.config_file.name)
+        print(' - ' + e.message)
+        return 1
 
     message = sys.stdin.read()
 
     mail = email.message_from_string(message)
 
-    rebuilt = rebuild_multipart(mail)
+    rebuilt = rebuild_multipart(mail, c)
     rebuilt.set_unixfrom(args.envelope_from)
 
     if args.print_message:
