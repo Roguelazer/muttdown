@@ -14,6 +14,8 @@ from email.mime.text import MIMEText
 import markdown
 import pynliner
 
+from jinja2 import Environment,FileSystemLoader,Template
+
 from . import config
 
 
@@ -26,11 +28,20 @@ def convert_one(part, config):
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
             md = markdown.markdown(pre_signature, output_format="html5")
-            md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
-            md += '<br />'.join(signature.split('\n'))
-            md += '</p></div>'
+            sig = markdown.markdown(signature, output_format="html5")
         else:
             md = markdown.markdown(text)
+            sig = ""
+
+        if config.template_dir and config.template:
+            env = Environment(loader = FileSystemLoader(config.template_dir))
+            tmpl = env.get_template(config.template)
+            md = tmpl.render(body=md, signature=sig)
+        else:
+            md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
+            md += sig
+            md += '</p></div>'
+
         if config.css:
             md = '<style>' + config.css + '</style>' + md
             md = pynliner.fromString(md)
