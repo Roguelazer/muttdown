@@ -62,6 +62,8 @@ class Config(object):
         'smtp_password_command': None,
         'smtp_timeout': 10,
         'css_file': None,
+        'template_dir': None,
+        'template': 'muttdown.tmpl',
     }
 
     def __init__(self):
