@@ -34,7 +34,6 @@ def convert_one(part, config):
         if config.css:
             md = '<style>' + config.css + '</style>' + md
             md = pynliner.fromString(md)
-        print(md)
         message = MIMEText(md, 'html')
         return message
     except Exception:
