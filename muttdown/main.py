@@ -79,7 +79,10 @@ def rebuild_multipart(mail, config):
     if did_any_markdown:
         new_top = MIMEMultipart('alternative')
         for k, v in mail.items():
-            if not k.startswith('Content-') or k.startswith('MIME'):
+            # the fake Bcc header definitely shouldn't keep existing
+            if k.lower() == 'bcc':
+                del mail[k]
+            elif not (k.startswith('Content-') or k.startswith('MIME')):
                 new_top.add_header(k, v)
                 del mail[k]
         new_top.attach(mail)
