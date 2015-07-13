@@ -53,7 +53,7 @@ install_requires, dependency_links = get_install_requirements()
 
 setup(
     name="muttdown",
-    version="0.1",
+    version="0.2",
     author="James Brown",
     author_email="Roguelazer@gmail.com",
     url="https://github.com/Roguelazer/muttdown",

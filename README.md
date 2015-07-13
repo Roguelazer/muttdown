@@ -54,6 +54,8 @@ NOTE: If `smtp_ssl` is set to False, `muttdown` will do a non-SSL session and th
 
 The `css_file` should be regular CSS styling blocks; we use [pynliner][] to inline all CSS rules for maximum client compatibility.
 
+Muttdown can also send its mail using the native `sendmail` if you have that set up (instead of doing SMTP itself). To do so, just leave the smtp options in the config file blank, set the `sendmail` option to the fully-qualified path to your `sendmail` binary, and run muttdown with the `-s` flag
+
 Installation
 ------------
 Install muttdown with `pip install muttdown` or by downloading this package and running `python setup.py install`. You will need the [PyYAML][] and [Python-Markdown][] libraries, as specified in `requirements.txt`.
