@@ -11,6 +11,8 @@ import email.iterators
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import subprocess
+
 import markdown
 import pynliner
 
@@ -119,6 +121,9 @@ def main():
         help='Print the translated message to stdout instead of sending it'
     )
     parser.add_argument('-f', '--envelope-from', required=True)
+    parser.add_argument('-s', '--sendmail-passthru', action='store_true',
+        help='Pass mail through to sendmail for delivery'
+    )
     parser.add_argument('addresses', nargs='+')
     args = parser.parse_args()
 
@@ -139,11 +144,16 @@ def main():
 
     if args.print_message:
         print(rebuilt.as_string())
+    elif args.sendmail_passthru:
+        cmd = [c.sendmail, '-f', args.envelope_from] + args.addresses
+
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
+        proc.communicate(rebuilt.as_string())
+
     else:
         conn = smtp_connection(c)
         conn.sendmail(args.envelope_from, args.addresses, rebuilt.as_string())
         conn.quit()
-
 
 if __name__ == '__main__':
     main()
