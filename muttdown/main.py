@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 from __future__ import print_function
 
 import argparse
@@ -16,11 +17,11 @@ import subprocess
 import markdown
 import pynliner
 
-if 1:
+try:
     from . import config
     from . import __version__
     __name__ = 'muttdown'
-else:
+except ValueError:
     import config
     __version__ = 'testing'
 
