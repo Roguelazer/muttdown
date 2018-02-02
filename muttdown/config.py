@@ -64,6 +64,7 @@ class Config(object):
         'css_file': None,
         'sendmail': '/usr/sbin/sendmail',
         'remove_sigil': False,
+        'markdown_extensions' : [],
     }
 
     def __init__(self):

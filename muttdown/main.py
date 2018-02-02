@@ -35,7 +35,7 @@ def convert_one(part, config):
             part.set_payload(text)
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature, output_format="html5")
+            md = markdown.markdown(pre_signature, config.markdown_extensions, output_format="html5")
             md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
             md += '<br />'.join(signature.split('\n'))
             md += '</p></div>'

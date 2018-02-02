@@ -58,6 +58,9 @@ Muttdown can also send its mail using the native `sendmail` if you have that set
 
 If the `remove_sigil` configuration file option is true, the sigil will also be removed from the plaintext version of the message part.
 
+The `markdown_extensions` configuration file option can be set to a list of Python markdown extensions that will be enabled (e.g. `[markdown.extensions.extra,markdown.extensions.Admonition]`).
+
+
 Installation
 ------------
 Install muttdown with `pip install muttdown` or by downloading this package and running `python setup.py install`. You will need the [PyYAML][] and [Python-Markdown][] libraries, as specified in `requirements.txt`.
