@@ -16,10 +16,13 @@ import subprocess
 import markdown
 import pynliner
 
-from . import config
-from . import __version__
-
-__name__ = 'muttdown'
+if 1:
+    from . import config
+    from . import __version__
+    __name__ = 'muttdown'
+else:
+    import config
+    __version__ = 'testing'
 
 
 def convert_one(part, config):
