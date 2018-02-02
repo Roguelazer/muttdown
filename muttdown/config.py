@@ -63,6 +63,7 @@ class Config(object):
         'smtp_timeout': 10,
         'css_file': None,
         'sendmail': '/usr/sbin/sendmail',
+        'remove_sigil': False,
     }
 
     def __init__(self):

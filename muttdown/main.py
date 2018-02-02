@@ -27,7 +27,9 @@ def convert_one(part, config):
         text = part.get_payload(None, True)
         if not text.startswith('!m'):
             return None
-        text = re.sub('\s*!m\s*', '', text, re.M)
+        text = re.sub('\s*!m\s*', '', text, count=1, flags=re.M)
+        if config.remove_sigil:
+            part.set_payload(text)
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
             md = markdown.markdown(pre_signature, output_format="html5")

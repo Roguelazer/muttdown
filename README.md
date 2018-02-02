@@ -56,6 +56,8 @@ The `css_file` should be regular CSS styling blocks; we use [pynliner][] to inli
 
 Muttdown can also send its mail using the native `sendmail` if you have that set up (instead of doing SMTP itself). To do so, just leave the smtp options in the config file blank, set the `sendmail` option to the fully-qualified path to your `sendmail` binary, and run muttdown with the `-s` flag
 
+If the `remove_sigil` configuration file option is true, the sigil will also be removed from the plaintext version of the message part.
+
 Installation
 ------------
 Install muttdown with `pip install muttdown` or by downloading this package and running `python setup.py install`. You will need the [PyYAML][] and [Python-Markdown][] libraries, as specified in `requirements.txt`.
