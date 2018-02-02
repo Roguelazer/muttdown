@@ -170,6 +170,8 @@ def main():
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
         proc.communicate(rebuilt.as_string())
+        proc.wait()
+        sys.exit(proc.returncode)
 
     else:
         conn = smtp_connection(c)
