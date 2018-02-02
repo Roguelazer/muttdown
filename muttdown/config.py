@@ -65,6 +65,7 @@ class Config(object):
         'sendmail': '/usr/sbin/sendmail',
         'remove_sigil': False,
         'markdown_extensions' : [],
+        'utf8': False,
     }
 
     def __init__(self):

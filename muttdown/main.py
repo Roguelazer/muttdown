@@ -45,6 +45,8 @@ def convert_one(part, config):
         text = re.sub('\s*![pm]\s*', '', text, count=1, flags=re.M)
         if config.remove_sigil:
             part.set_payload(text)
+        if config.utf8:
+            text = unicode(text,'utf8')
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
             md = converter(pre_signature,config)
@@ -56,7 +58,10 @@ def convert_one(part, config):
         if config.css:
             md = '<style>\n' + config.css + '</style>\n' + '<body>\n' + md + '\n</body>\n'
             md = pynliner.fromString(md)
-        message = MIMEText(md, 'html')
+        if config.utf8:
+            message = MIMEText(md.encode('utf-8'), 'html', _charset='utf-8')
+        else:
+            message = MIMEText(md, 'html')
         return message
     except Exception as e:
         sys.stderr.write('muttdown: '+str(e))

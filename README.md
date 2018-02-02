@@ -61,6 +61,11 @@ If the `remove_sigil` configuration file option is true, the sigil will also be 
 
 The `markdown_extensions` configuration file option can be set to a list of Python markdown extensions that will be enabled (e.g. `[markdown.extensions.extra,markdown.extensions.Admonition]`).
 
+The `utf8` option will assume that the message text is UTF8 and create
+the HTML version appropriately.  This is useful if you receive a lot
+of e-mails (which you want to quote in replies) that include UTF-8
+characters but don't have the encoding set correctly.
+
 
 Installation
 ------------
