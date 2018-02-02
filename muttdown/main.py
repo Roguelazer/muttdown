@@ -43,7 +43,8 @@ def convert_one(part, config):
             md = pynliner.fromString(md)
         message = MIMEText(md, 'html')
         return message
-    except Exception:
+    except Exception as e:
+        sys.stderr.write('muttdown: '+str(e))
         return None
 
 
