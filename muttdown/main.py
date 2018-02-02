@@ -24,23 +24,34 @@ else:
     import config
     __version__ = 'testing'
 
+def convert_markdown(text,config):
+    return markdown.markdown(text,config.markdown_extensions,output_format="html5")
+
+def convert_preformat(text,config):
+    import cgi
+    return '<pre>\n' + cgi.escape(text) + '\n</pre>\n'
 
 def convert_one(part, config):
     try:
         text = part.get_payload(None, True)
-        if not text.startswith('!m'):
+
+        if text.startswith('!m'):
+            converter = convert_markdown
+        elif text.startswith('!p'):
+            converter = convert_preformat
+        else:
             return None
-        text = re.sub('\s*!m\s*', '', text, count=1, flags=re.M)
+        text = re.sub('\s*![pm]\s*', '', text, count=1, flags=re.M)
         if config.remove_sigil:
             part.set_payload(text)
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature, config.markdown_extensions, output_format="html5")
+            md = converter(pre_signature,config)
             md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
             md += '<br />'.join(signature.split('\n'))
             md += '</p></div>'
         else:
-            md = markdown.markdown(text)
+            md = converter(text,config)
         if config.css:
             md = '<style>' + config.css + '</style>' + md
             md = pynliner.fromString(md)

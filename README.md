@@ -1,7 +1,8 @@
 muttdown
 ========
 
-`muttdown` is a sendmail-replacement designed for use with the [mutt][] email client which will transparently compile annotated `text/plain` mail into `text/html` using the [Markdown][] standard.  It will recursively walk the MIME tree and compile any `text/plain` or `text/markdown` part which begins with the sigil "!m" into Markdown, which it will insert alongside the original in a multipart/alternative container.
+`muttdown` is a sendmail-replacement designed for use with the [mutt][] email client which will transparently compile annotated `text/plain` mail into `text/html` using the [Markdown][] standard.  It will recursively walk the MIME tree and compile any `text/plain` or `text/markdown` part which begins with the sigil "!m" into Markdown, which it will insert alongside the original in a multipart/alternative container.  If a part starts with the sigil '!p' it will simply enclose it in &lt;pre&gt; &lt;/pre&gt; tags instead of
+formatting it with markdown.
 
 It's also smart enough not to break `multipart/signed`.
 
