@@ -122,7 +122,7 @@ def main():
     parser = argparse.ArgumentParser(version='%s %s' % (__name__, __version__))
     parser.add_argument(
         '-c', '--config_file', default=os.path.expanduser('~/.muttdown.yaml'),
-        type=argparse.FileType('r'), required=True,
+        type=argparse.FileType('r'), required=False,
         help='Path to YAML config file (default %(default)s)'
     )
     parser.add_argument(
