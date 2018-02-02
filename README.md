@@ -1,7 +1,8 @@
 muttdown
 ========
 
-`muttdown` is a sendmail-replacement designed for use with the [mutt][] email client which will transparently compile annotated `text/plain` mail into `text/html` using the [Markdown][] standard.  It will recursively walk the MIME tree and compile any `text/plain` or `text/markdown` part which begins with the sigil "!m" into Markdown, which it will insert alongside the original in a multipart/alternative container.
+`muttdown` is a sendmail-replacement designed for use with the [mutt][] email client which will transparently compile annotated `text/plain` mail into `text/html` using the [Markdown][] standard.  It will recursively walk the MIME tree and compile any `text/plain` or `text/markdown` part which begins with the sigil "!m" into Markdown, which it will insert alongside the original in a multipart/alternative container.  If a part starts with the sigil '!p' it will simply enclose it in &lt;pre&gt; &lt;/pre&gt; tags instead of
+formatting it with markdown.
 
 It's also smart enough not to break `multipart/signed`.
 
@@ -55,6 +56,16 @@ NOTE: If `smtp_ssl` is set to False, `muttdown` will do a non-SSL session and th
 The `css_file` should be regular CSS styling blocks; we use [pynliner][] to inline all CSS rules for maximum client compatibility.
 
 Muttdown can also send its mail using the native `sendmail` if you have that set up (instead of doing SMTP itself). To do so, just leave the smtp options in the config file blank, set the `sendmail` option to the fully-qualified path to your `sendmail` binary, and run muttdown with the `-s` flag
+
+If the `remove_sigil` configuration file option is true, the sigil will also be removed from the plaintext version of the message part.
+
+The `markdown_extensions` configuration file option can be set to a list of Python markdown extensions that will be enabled (e.g. `[markdown.extensions.extra,markdown.extensions.Admonition]`).
+
+The `utf8` option will assume that the message text is UTF8 and create
+the HTML version appropriately.  This is useful if you receive a lot
+of e-mails (which you want to quote in replies) that include UTF-8
+characters but don't have the encoding set correctly.
+
 
 Installation
 ------------

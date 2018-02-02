@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 from __future__ import print_function
 
 import argparse
@@ -16,32 +17,54 @@ import subprocess
 import markdown
 import pynliner
 
-from . import config
-from . import __version__
+try:
+    from . import config
+    from . import __version__
+    __name__ = 'muttdown'
+except ValueError:
+    import config
+    __version__ = 'testing'
 
-__name__ = 'muttdown'
+def convert_markdown(text,config):
+    return markdown.markdown(text,config.markdown_extensions,output_format="html5")
 
+def convert_preformat(text,config):
+    import cgi
+    return '<pre>\n' + cgi.escape(text) + '\n</pre>\n'
 
 def convert_one(part, config):
     try:
         text = part.get_payload(None, True)
-        if not text.startswith('!m'):
+
+        if text.startswith('!m'):
+            converter = convert_markdown
+        elif text.startswith('!p'):
+            converter = convert_preformat
+        else:
             return None
-        text = re.sub('\s*!m\s*', '', text, re.M)
+        text = re.sub('\s*![pm]\s*', '', text, count=1, flags=re.M)
+        if config.remove_sigil:
+            part.set_payload(text)
+        if config.utf8:
+            text = unicode(text,'utf8')
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature, output_format="html5")
+            md = converter(pre_signature,config)
             md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
             md += '<br />'.join(signature.split('\n'))
             md += '</p></div>'
         else:
-            md = markdown.markdown(text)
+            md = converter(text,config)
         if config.css:
-            md = '<style>' + config.css + '</style>' + md
+            md = '<style>\n' + config.css + '</style>\n' + '<body>\n' + md + '\n</body>\n'
             md = pynliner.fromString(md)
-        message = MIMEText(md, 'html')
+        if config.utf8:
+            message = MIMEText(md.encode('utf-8'), 'html', _charset='utf-8')
+        else:
+            message = MIMEText(md, 'html')
         return message
-    except Exception:
+    except Exception as e:
+        sys.stderr.write('muttdown: '+str(e))
         return None
 
 
@@ -116,7 +139,7 @@ def main():
     parser = argparse.ArgumentParser(version='%s %s' % (__name__, __version__))
     parser.add_argument(
         '-c', '--config_file', default=os.path.expanduser('~/.muttdown.yaml'),
-        type=argparse.FileType('r'), required=True,
+        type=argparse.FileType('r'), required=False,
         help='Path to YAML config file (default %(default)s)'
     )
     parser.add_argument(
@@ -153,6 +176,8 @@ def main():
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
         proc.communicate(rebuilt.as_string())
+        proc.wait()
+        sys.exit(proc.returncode)
 
     else:
         conn = smtp_connection(c)
