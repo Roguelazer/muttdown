@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'Markdown>=2.0',
         'PyYAML>=3.0',
-        'pynliner==0.5.2'
+        'pynliner==0.8.0'
     ],
     entry_points={
         'console_scripts': [

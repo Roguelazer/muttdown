@@ -91,7 +91,8 @@ class Config(object):
     def css(self):
         if self._css is None:
             if self.css_file is not None:
-                self._css = open(os.path.expanduser(self.css_file), 'r').read()
+                with open(os.path.expanduser(self.css_file), 'r') as f:
+                    self._css = f.read()
             else:
                 self._css = ''
         return self._css

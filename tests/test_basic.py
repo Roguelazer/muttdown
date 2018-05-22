@@ -1,5 +1,6 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.message import Message
 
 import pytest
 
@@ -10,6 +11,15 @@ from muttdown.config import Config
 @pytest.fixture
 def basic_config():
     return Config()
+
+
+@pytest.fixture
+def config_with_css(tmpdir):
+    with open('%s/test.css' % tmpdir, 'w') as f:
+        f.write('html, body, p { font-family: serif; }\n')
+    c = Config()
+    c.merge_config({'css_file': '%s/test.css' % tmpdir})
+    return c
 
 
 def test_simple_message(basic_config):
@@ -48,3 +58,20 @@ def test_simple_message(basic_config):
     assert isinstance(attachment_part, MIMEText)
     assert attachment_part['Content-Disposition'] == 'attachment'
     assert attachment_part.get_content_type() == 'text/x-misc'
+
+
+def test_with_css(config_with_css):
+    msg = Message()
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.set_payload('!m\n\nThis is a message')
+
+    converted, _ = convert_tree(msg, config_with_css)
+    assert isinstance(converted, MIMEMultipart)
+    assert len(converted.get_payload()) == 2
+    text_part = converted.get_payload()[0]
+    assert text_part.get_payload(decode=True) == '!m\n\nThis is a message'
+    html_part = converted.get_payload()[1]
+    assert html_part.get_payload(decode=True) == '<p style="font-family: serif">This is a message</p>'
