@@ -5,13 +5,13 @@ import sys
 import smtplib
 import re
 import os.path
-
 import email
 import email.iterators
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import subprocess
+import six
 
 import markdown
 import pynliner
@@ -24,7 +24,10 @@ __name__ = 'muttdown'
 
 def convert_one(part, config):
     try:
-        text = part.get_payload(None, True)
+        text = part.get_payload(decode=True)
+        if not isinstance(text, six.text_type):
+            # no, I don't know why decode=True sometimes fails to decode.
+            text = text.decode('utf-8')
         if not text.startswith('!m'):
             return None
         text = re.sub('\s*!m\s*', '', text, re.M)

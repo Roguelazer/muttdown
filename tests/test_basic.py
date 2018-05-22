@@ -72,6 +72,6 @@ def test_with_css(config_with_css):
     assert isinstance(converted, MIMEMultipart)
     assert len(converted.get_payload()) == 2
     text_part = converted.get_payload()[0]
-    assert text_part.get_payload(decode=True) == '!m\n\nThis is a message'
+    assert text_part.get_payload(decode=True) == b'!m\n\nThis is a message'
     html_part = converted.get_payload()[1]
-    assert html_part.get_payload(decode=True) == '<p style="font-family: serif">This is a message</p>'
+    assert html_part.get_payload(decode=True) == b'<p style="font-family: serif">This is a message</p>'
