@@ -39,62 +39,66 @@ def convert_one(part, config):
         if config.css:
             md = '<style>' + config.css + '</style>' + md
             md = pynliner.fromString(md)
-        message = MIMEText(md, 'html')
+        message = MIMEText(md, 'html', _charset="UTF-8")
         return message
     except Exception:
+        raise
         return None
 
 
-def convert_tree(message, config):
+def _move_headers(source, dest):
+    for k, v in source.items():
+        # mutt sometimes sticks in a fake bcc header
+        if k.lower() == 'bcc':
+            del source[k]
+        elif not (k.startswith('Content-') or k.startswith('MIME')):
+            dest.add_header(k, v)
+            del source[k]
+
+
+def convert_tree(message, config, indent=0):
     """Recursively convert a potentially-multipart tree.
 
     Returns a tuple of (the converted tree, whether any markdown was found)
     """
     ct = message.get_content_type()
-    if message.is_multipart():
-        if ct == 'multipart/signed':
-            # if this is a multipart/signed message, then let's just
-            # recurse into the non-signature part
-            for part in message.get_payload():
-                if part.get_content_type() != 'application/pgp-signature':
-                    return convert_tree(part, config)
-        else:
-            # it's multipart, but not signed. copy it!
-            new_root = MIMEMultipart(message.get_content_subtype(), message.get_charset())
-            did_conversion = False
-            for part in message.get_payload():
-                converted_part, this_did_conversion = convert_tree(part, config)
-                did_conversion |= this_did_conversion
-                new_root.attach(converted_part)
-            return new_root, did_conversion
-    else:
-        # okay, this isn't a multipart type. If it's inline
-        # and it's either text/plain or text/markdown, let's convert it
+    cs = message.get_content_subtype()
+    if not message.is_multipart():
+        # we're on a leaf
         converted = None
         disposition = message.get('Content-Disposition', 'inline')
         if disposition == 'inline' and ct in ('text/plain', 'text/markdown'):
             converted = convert_one(message, config)
         if converted is not None:
-            return converted, True
+            new_tree = MIMEMultipart('alternative')
+            _move_headers(message, new_tree)
+            new_tree.attach(message)
+            new_tree.attach(converted)
+            return new_tree, True
         return message, False
+    else:
+        if ct == 'multipart/signed':
+            # if this is a multipart/signed message, then let's just
+            # recurse into the non-signature part
+            for part in message.get_payload():
+                if part.get_content_type() != 'application/pgp-signature':
+                    return convert_tree(part, config, indent=indent + 1)
+        else:
+            did_conversion = False
+            new_root = MIMEMultipart(cs, message.get_charset())
+            if message.preamble:
+                new_root.preamble = message.preamble
+            _move_headers(message, new_root)
+            for part in message.get_payload():
+                part, did_this_conversion = convert_tree(part, config, indent=indent + 1)
+                did_conversion |= did_this_conversion
+                new_root.attach(part)
+            return new_root, did_conversion
 
 
 def rebuild_multipart(mail, config):
     converted, did_any_markdown = convert_tree(mail, config)
-    if did_any_markdown:
-        new_top = MIMEMultipart('alternative')
-        for k, v in mail.items():
-            # the fake Bcc header definitely shouldn't keep existing
-            if k.lower() == 'bcc':
-                del mail[k]
-            elif not (k.startswith('Content-') or k.startswith('MIME')):
-                new_top.add_header(k, v)
-                del mail[k]
-        new_top.attach(mail)
-        new_top.attach(converted)
-        return new_top
-    else:
-        return mail
+    return converted
 
 
 def smtp_connection(c):
