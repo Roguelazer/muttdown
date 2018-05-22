@@ -116,7 +116,7 @@ def main():
     parser = argparse.ArgumentParser(version='%s %s' % (__name__, __version__))
     parser.add_argument(
         '-c', '--config_file', default=os.path.expanduser('~/.muttdown.yaml'),
-        type=argparse.FileType('r'), required=True,
+        type=argparse.FileType('r'), required=False,
         help='Path to YAML config file (default %(default)s)'
     )
     parser.add_argument(
@@ -135,8 +135,9 @@ def main():
     try:
         c.load(args.config_file)
     except config.ConfigError as e:
-        print('Error(s) in configuration %s:' % args.config_file.name)
-        print(' - ' + e.message)
+        sys.stderr.write('Error(s) in configuration %s:\n' % args.config_file.name)
+        sys.stderr.write(' - %s\n' % e.message)
+        sys.stderr.flush()
         return 1
 
     message = sys.stdin.read()
@@ -153,11 +154,13 @@ def main():
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
         proc.communicate(rebuilt.as_string())
-
+        return proc.returncode
     else:
         conn = smtp_connection(c)
         conn.sendmail(args.envelope_from, args.addresses, rebuilt.as_string())
         conn.quit()
+    return 0
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
