@@ -3,6 +3,8 @@ import yaml
 import subprocess
 import os.path
 
+import six
+
 # largely copied from my earlier work in fakemtpd
 
 
@@ -32,7 +34,7 @@ class _ParamsAsProps(type):
     your own with the same name. Just like if they were statically defined!"""
     def __new__(clsarg, name, bases, d):
         cls = super(_ParamsAsProps, clsarg).__new__(clsarg, name, bases, d)
-        for parameter in cls._parameters.iterkeys():
+        for parameter in cls._parameters.keys():
             if parameter not in d:
                 f = _param_getter_factory(parameter)
                 setattr(cls, parameter, property(f))
@@ -50,9 +52,8 @@ class ConfigError(Exception):
         return '%s(%r)' % (self.__class__.__name__, self.message)
 
 
+@six.add_metaclass(_ParamsAsProps)
 class Config(object):
-    __metaclass__ = _ParamsAsProps
-
     _parameters = {
         'smtp_host': '127.0.0.1',
         'smtp_port': 25,
@@ -91,7 +92,8 @@ class Config(object):
     def css(self):
         if self._css is None:
             if self.css_file is not None:
-                self._css = open(os.path.expanduser(self.css_file), 'r').read()
+                with open(os.path.expanduser(self.css_file), 'r') as f:
+                    self._css = f.read()
             else:
                 self._css = ''
         return self._css

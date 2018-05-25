@@ -1,0 +1,11 @@
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install:
+  - "pip install -r requirements-tests.txt"
+  - "pip install ."
+script: "pytest --cov=muttdown --cov-report=term-missing tests/"
