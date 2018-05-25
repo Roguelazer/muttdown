@@ -5,6 +5,7 @@ from email.message import Message
 import pytest
 
 from muttdown.main import convert_tree
+from muttdown.main import process_message
 from muttdown.config import Config
 
 
@@ -20,6 +21,18 @@ def config_with_css(tmpdir):
     c = Config()
     c.merge_config({'css_file': '%s/test.css' % tmpdir})
     return c
+
+
+def test_unmodified_no_match(basic_config):
+    msg = Message()
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.set_payload('This message has no sigil')
+
+    converted = process_message(msg, basic_config)
+    assert converted == msg
 
 
 def test_simple_message(basic_config):

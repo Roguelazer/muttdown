@@ -99,8 +99,10 @@ def convert_tree(message, config, indent=0):
             return new_root, did_conversion
 
 
-def rebuild_multipart(mail, config):
+def process_message(mail, config):
     converted, did_any_markdown = convert_tree(mail, config)
+    if 'Bcc' in converted:
+        del converted['Bcc']
     return converted
 
 
@@ -151,7 +153,7 @@ def main():
 
     mail = email.message_from_string(message)
 
-    rebuilt = rebuild_multipart(mail, c)
+    rebuilt = process_message(mail, c)
     rebuilt.set_unixfrom(args.envelope_from)
 
     if args.print_message:
