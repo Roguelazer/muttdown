@@ -100,7 +100,7 @@ def test_multipart_signed(basic_config):
     msg['To'] = 'to@example.com'
     msg['Bcc'] = 'bananas'
 
-    msg.attach(MIMEText("!m This is the signed message body. 💩"))
+    msg.attach(MIMEText("!m This is the signed message body. \U0001f4a9"))
     msg.attach(MIMEApplication("some-signature-here", "pgp-signature", name="signature.asc"))
     converted, _ = convert_tree(msg, basic_config)
 
