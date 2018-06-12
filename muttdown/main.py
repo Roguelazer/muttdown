@@ -42,7 +42,7 @@ def convert_one(part, config):
         if config.css:
             md = '<style>' + config.css + '</style>' + md
             md = pynliner.fromString(md)
-        message = MIMEText(md, 'html', _charset="UTF-8")
+        message = MIMEText(md, _subtype='html', _charset='utf-8')
         return message
     except Exception:
         raise
@@ -59,7 +59,7 @@ def _move_headers(source, dest):
             del source[k]
 
 
-def convert_tree(message, config, indent=0):
+def convert_tree(message, config, only_new=False):
     """Recursively convert a potentially-multipart tree.
 
     Returns a tuple of (the converted tree, whether any markdown was found)
@@ -73,6 +73,8 @@ def convert_tree(message, config, indent=0):
         if disposition == 'inline' and ct in ('text/plain', 'text/markdown'):
             converted = convert_one(message, config)
         if converted is not None:
+            if only_new:
+                return converted, True
             new_tree = MIMEMultipart('alternative')
             _move_headers(message, new_tree)
             new_tree.attach(message)
@@ -81,11 +83,21 @@ def convert_tree(message, config, indent=0):
         return message, False
     else:
         if ct == 'multipart/signed':
-            # if this is a multipart/signed message, then let's just
-            # recurse into the non-signature part
+            # find the non-signature part
+            target_part = None
             for part in message.get_payload():
                 if part.get_content_type() != 'application/pgp-signature':
-                    return convert_tree(part, config, indent=indent + 1)
+                    target_part = part
+            if target_part is None:
+                return message, False
+            converted_part, did_conversion = convert_tree(target_part, config, only_new=True)
+            if not did_conversion:
+                return message, False
+            new_root = MIMEMultipart('alternative', message.get_charset())
+            _move_headers(message, new_root)
+            new_root.attach(message)
+            new_root.attach(converted_part)
+            return new_root, True
         else:
             did_conversion = False
             new_root = MIMEMultipart(cs, message.get_charset())
@@ -93,7 +105,7 @@ def convert_tree(message, config, indent=0):
                 new_root.preamble = message.preamble
             _move_headers(message, new_root)
             for part in message.get_payload():
-                part, did_this_conversion = convert_tree(part, config, indent=indent + 1)
+                part, did_this_conversion = convert_tree(part, config, only_new=only_new)
                 did_conversion |= did_this_conversion
                 new_root.attach(part)
             return new_root, did_conversion
