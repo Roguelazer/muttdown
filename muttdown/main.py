@@ -159,7 +159,7 @@ def main():
     if args.print_message:
         print(rebuilt.as_string())
     elif args.sendmail_passthru:
-        cmd = [c.sendmail, '-f', args.envelope_from] + args.addresses
+        cmd = c.sendmail.split() + ['-f', args.envelope_from] + args.addresses
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
         proc.communicate(rebuilt.as_string())
