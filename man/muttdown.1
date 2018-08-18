@@ -1,0 +1,114 @@
+.TH muttdown "1" "August 2018"
+.SH NAME
+muttdown - Sendmail replacement that compiles markdown into HTML
+.SH SYNOPSIS
+.B muttdown
+[-c \fIconfig_file\fR] [-p] -f \fIfrom_address\fR [-s] \fIto_address\fR ...
+.br
+.B muttdown
+[-h]
+.SH DESCRIPTION
+\fBmuttdown\fR is a sendmail-replacement designed for use with the mutt email
+client which will transparently compile annotated \fItext/plain\fR mail into
+\fItext/html\fR using the Markdown standard.
+.P
+It expects a RFC\-822 formatted mail on STDIN.
+.P
+It will recursively walk the MIME tree and compile any \fItext/plain\fR or
+\fItext/markdown\fR part which begins with the sigil "!m" into Markdown, which
+it will insert alongside the original in a multipart/alternative container.
+.P
+It's also smart enough not to break \fImultipart/signed\fR.
+.P
+For example, the following tree before parsing:
+.IP
+- multipart/mixed
+ |
+ -- multipart/signed
+ |
+ ---- text/markdown
+ |
+ ---- application/pgp-signature
+ |
+ -- image/png
+.P
+Will get compiled into:
+.IP
+- multipart/mixed
+ |
+ -- multipart/alternative
+ |
+ ---- text/html
+ |
+ ---- multipart/signed
+ |
+ ------ text/markdown
+ |
+ ------ application/pgp-signature
+ |
+ -- image/png
+
+.SH OPTIONS
+.TP
+\fB\-c\fR \fI\,CONFIG_FILE\/\fR, \fB\-\-config_file\fR \fI\,CONFIG_FILE\/\fR
+Path to YAML config file (default \fI~/.muttdown.yaml\fR)
+
+.TP
+\fB\-p\fR, \fB\-\-print\-message\fR
+Print the translated message to stdout instead of sending it
+
+.TP
+\fB\-f\fR \fI\,from_address\/\fR, \fB\-\-envelope\-from\fR \fI\,from_address\/\fR
+The \fIfrom\fR address for the email
+
+.TP
+\fB\-s\fR, \fB\-\-sendmail\-passthru\fR
+Pass mail through to \fBsendmail\fR for delivery
+
+.TP
+\fBto_address\fR
+The \fIto\fR address where the email is being sent
+
+.SH CONFIGURATION
+Muttdown's configuration file is written using YAML. Example:
+.IP
+smtp_host: smtp.gmail.com
+.br
+smtp_port: 587
+.br
+smtp_ssl: false
+.br
+smtp_username: foo@bar.com
+.br
+smtp_password: foo
+.br
+css_file: ~/.muttdown.css
+.P
+If you prefer not to put your password in plaintext in a configuration file, you
+can instead specify the \fBsmtp_password_command\fR parameter to invoke a shell
+command to lookup your password. The command should output your password,
+followed by a newline, and no other text. On OS X, the following invocation will
+extract a generic "Password" entry with the application set to \fImutt\fR and
+the title set to \fIfoo@bar.com\fR:
+.IP
+smtp_password_command: security find-generic-password -w -s mutt -a foo@bar.com
+.P
+\fBNOTE:\fR If \fBsmtp_ssl\fR is set to \fIFalse\fR, muttdown will do a non-SSL
+session and then invoke STARTTLS. If \fBsmtp_ssl\fR is set to \fITrue\fR,
+\fBmuttdown\fR will do an SSL session from the get-go. There is no option to
+send mail in plaintext.
+.P
+The \fBcss_file\fR should be regular CSS styling blocks; we use \fBpynliner\fR
+to inline all CSS rules for maximum client compatibility.
+.P
+\fBmuttdown\fR can also send its mail using the native \fBsendmail\fR if you
+have that set up (instead of doing SMTP itself). To do so, just leave the smtp
+options in the config file blank, set the \fBsendmail\fR option to the
+fully-qualified path to your \fBsendmail\fR binary, and run \fBmuttdown\fR with
+the \fB-s\fR flag
+
+.SH AUTHORS
+\fBmuttdown\fR was written by James Brown <Roguelazer@gmail.com>.
+.P
+This man page was adapted from \fBmuttdown\fR's README by Stephen Gelman
+<ssgelm@gmail.com> for the Debian project and may be used by others.
