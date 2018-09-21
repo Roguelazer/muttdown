@@ -122,7 +122,8 @@ def smtp_connection(c):
 
 
 def main():
-    parser = argparse.ArgumentParser(version='%s %s' % (__name__, __version__))
+    parser = argparse.ArgumentParser(prog='muttdown')
+    parser.add_argument('-v', '--version', action='version', version='%s %s' % (__name__, __version__))
     parser.add_argument(
         '-c', '--config_file', default=os.path.expanduser('~/.muttdown.yaml'),
         type=argparse.FileType('r'), required=False,
