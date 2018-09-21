@@ -1,8 +1,11 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from email.message import Message
+from email.iterators import _structure
 
 import pytest
+from six.moves import StringIO
 
 from muttdown.main import convert_tree
 from muttdown.main import process_message
@@ -88,3 +91,27 @@ def test_with_css(config_with_css):
     assert text_part.get_payload(decode=True) == b'!m\n\nThis is a message'
     html_part = converted.get_payload()[1]
     assert html_part.get_payload(decode=True) == b'<p style="font-family: serif">This is a message</p>'
+
+
+def test_multipart_signed(basic_config):
+    msg = MIMEMultipart('signed')
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+
+    msg.attach(MIMEText("!m This is the signed message body. \U0001f4a9"))
+    msg.attach(MIMEApplication("some-signature-here", "pgp-signature", name="signature.asc"))
+    converted, _ = convert_tree(msg, basic_config)
+
+    structure = StringIO()
+
+    _structure(converted, fp=structure)
+    assert structure.getvalue() == '\n'.join([
+        'multipart/alternative',
+        '    multipart/signed',
+        '        text/plain',
+        '        application/pgp-signature',
+        '    text/html',
+        ''
+    ])
