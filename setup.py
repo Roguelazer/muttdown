@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="muttdown",
-    version="0.3",
+    version="0.3.1",
     author="James Brown",
     author_email="Roguelazer@gmail.com",
     url="https://github.com/Roguelazer/muttdown",
