@@ -1,3 +1,8 @@
+0.3.2
+=====
+- Fix `smtp_password_command`
+- Fix tests with newer version of pytest
+
 0.3.1
 =====
 - Fix an incompatibility with Python 3.5
