@@ -1,6 +1,8 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.message import Message
+import tempfile
+import shutil
 
 import pytest
 
@@ -15,11 +17,21 @@ def basic_config():
 
 
 @pytest.fixture
-def config_with_css(tmpdir):
-    with open('%s/test.css' % tmpdir, 'w') as f:
+def tempdir():
+    # workaround because pytest's bultin tmpdir fixture is broken on python 3.3
+    dirname = tempfile.mkdtemp()
+    try:
+        yield dirname
+    finally:
+        shutil.rmtree(dirname)
+
+
+@pytest.fixture
+def config_with_css(tempdir):
+    with open('%s/test.css' % tempdir, 'w') as f:
         f.write('html, body, p { font-family: serif; }\n')
     c = Config()
-    c.merge_config({'css_file': '%s/test.css' % tmpdir})
+    c.merge_config({'css_file': '%s/test.css' % tempdir})
     return c
 
 

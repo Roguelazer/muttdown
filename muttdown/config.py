@@ -80,6 +80,7 @@ class Config(object):
         if self._config['smtp_password'] and self._config['smtp_password_command']:
             raise ConfigError('Cannot set smtp_password *and* smtp_password_command')
         if self._config['css_file']:
+            self._css = None
             self._config['css_file'] = os.path.expanduser(self._config['css_file'])
             if not os.path.exists(self._config['css_file']):
                 raise ConfigError('CSS file %s does not exist' % self._config['css_file'])
@@ -101,6 +102,6 @@ class Config(object):
     @property
     def smtp_password(self):
         if self._config['smtp_password_command']:
-            return check_output(self._config['smtp_password_command'], shell=True).rstrip('\n')
+            return check_output(self._config['smtp_password_command'], shell=True, universal_newlines=True).rstrip('\n')
         else:
             return self._config['smtp_password']
