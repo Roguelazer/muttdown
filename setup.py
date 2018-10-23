@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
+with open('README.md', 'r') as f:
+    long_description = f.read()
+
 
 setup(
     name="muttdown",
@@ -12,6 +15,8 @@ setup(
     packages=find_packages(exclude=['tests']),
     keywords=["email"],
     description="Sendmail replacement that compiles markdown into HTML",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     install_requires=[
         'Markdown>=2.0',
         'PyYAML>=3.0',
@@ -32,6 +37,7 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Intended Audience :: End Users/Desktop",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: ISC License (ISCL)",
