@@ -18,9 +18,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
-        'Markdown>=2.0',
         'PyYAML>=3.0',
-        'pynliner==0.8.0',
+        'pypandoc',
+        'premailer',
         'six',
     ],
     entry_points={

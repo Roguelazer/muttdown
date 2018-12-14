@@ -13,8 +13,10 @@ from email.mime.text import MIMEText
 import subprocess
 import six
 
-import markdown
-import pynliner
+# Use pandoc for markdown, and inline the CSS with battleworn tool:
+import pypandoc
+import premailer
+import tempfile
 
 from . import config
 from . import __version__
@@ -27,24 +29,28 @@ def convert_one(part, config):
         text = part.get_payload(decode=True)
         if not isinstance(text, six.text_type):
             # no, I don't know why decode=True sometimes fails to decode.
+            # it is because its decoding from different formats. first base64 then unicode ---guygma
             text = text.decode('utf-8')
         if not text.startswith('!m'):
             return None
         text = re.sub('\s*!m\s*', '', text, re.M)
+        f = tempfile.NamedTemporaryFile(suffix='_panmail.css')
+        if config.css: f.write(config.css)
         if '\n-- \n' in text:
             pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature, output_format="html5")
-            md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
-            md += '<br />'.join(signature.split('\n'))
-            md += '</p></div>'
+            message  = pypandoc.convert_text(pre_signature, 'html5', format='md', \
+                    extra_args=["--css="+f.name, "--self-contained", "--metadata=pagetitle:'email'"])
+            message += '\n<div class="signature" style="font-size: small"><p>-- \n<br />'
+            message += '<br />'.join(signature.split('\n'))
+            message += '</p></div>'
         else:
-            md = markdown.markdown(text)
-        if config.css:
-            md = '<style>' + config.css + '</style>' + md
-            md = pynliner.fromString(md)
-        message = MIMEText(md, 'html', _charset="UTF-8")
+            message  = pypandoc.convert_text(text, 'html5', format='md', \
+                    extra_args=["--css="+f.name, "--self-contained", "--metadata=pagetitle:'email'"])
+        message = premailer.transform(message) # In-line the CSS.
+        message = MIMEText(message, 'html', _charset="UTF-8")
+        f.close()
         return message
-    except Exception:
+    except Exception:#silly. only need this to handle a certain exception differently from default.
         raise
         return None
 
@@ -160,10 +166,10 @@ def main():
     if args.print_message:
         print(rebuilt.as_string())
     elif args.sendmail_passthru:
-        cmd = c.sendmail.split() + ['-f', args.envelope_from] + args.addresses
+        cmd = c.sendmail.split() + ['-G', '-i', '-f', args.envelope_from] + args.addresses
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
-        proc.communicate(rebuilt.as_string())
+        proc.communicate(rebuilt.as_string().encode())
         return proc.returncode
     else:
         conn = smtp_connection(c)
