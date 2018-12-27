@@ -1,3 +1,7 @@
+0.3.3
+=====
+- Fix `-s` / smtp passthrough mode on Python 3
+
 0.3.2
 =====
 - Fix `smtp_password_command`

@@ -1,3 +1,3 @@
-version_info = (0, 3, 2)
+version_info = (0, 3, 3)
 __version__ = '.'.join(map(str, version_info))
 __author__ = 'James Brown <Roguelazer@gmail.com>'
