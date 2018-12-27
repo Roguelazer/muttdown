@@ -163,7 +163,7 @@ def main():
         cmd = c.sendmail.split() + ['-f', args.envelope_from] + args.addresses
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
-        proc.communicate(rebuilt.as_string())
+        proc.communicate(rebuilt.as_string().encode('utf-8'))
         return proc.returncode
     else:
         conn = smtp_connection(c)
