@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name="muttdown",
-    version="0.3.3",
+    version="0.3.4",
     author="James Brown",
     author_email="Roguelazer@gmail.com",
     url="https://github.com/Roguelazer/muttdown",
