@@ -23,30 +23,26 @@ __name__ = 'muttdown'
 
 
 def convert_one(part, config):
-    try:
-        text = part.get_payload(decode=True)
-        if not isinstance(text, six.text_type):
-            # no, I don't know why decode=True sometimes fails to decode.
-            text = text.decode('utf-8')
-        if not text.startswith('!m'):
-            return None
-        text = re.sub('\s*!m\s*', '', text, re.M)
-        if '\n-- \n' in text:
-            pre_signature, signature = text.split('\n-- \n')
-            md = markdown.markdown(pre_signature, output_format="html5")
-            md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
-            md += '<br />'.join(signature.split('\n'))
-            md += '</p></div>'
-        else:
-            md = markdown.markdown(text)
-        if config.css:
-            md = '<style>' + config.css + '</style>' + md
-            md = pynliner.fromString(md)
-        message = MIMEText(md, 'html', _charset="UTF-8")
-        return message
-    except Exception:
-        raise
+    text = part.get_payload(decode=True)
+    if not isinstance(text, six.text_type):
+        # no, I don't know why decode=True sometimes fails to decode.
+        text = text.decode('utf-8')
+    if not text.startswith('!m'):
         return None
+    text = re.sub('\s*!m\s*', '', text, re.M)
+    if '\n-- \n' in text:
+        pre_signature, signature = text.split('\n-- \n')
+        md = markdown.markdown(pre_signature, output_format="html5")
+        md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
+        md += '<br />'.join(signature.split('\n'))
+        md += '</p></div>'
+    else:
+        md = markdown.markdown(text)
+    if config.css:
+        md = '<style>' + config.css + '</style>' + md
+        md = pynliner.fromString(md)
+    message = MIMEText(md, 'html', _charset="UTF-8")
+    return message
 
 
 def _move_headers(source, dest):
@@ -129,12 +125,17 @@ def smtp_connection(c):
     if not c.smtp_ssl:
         conn.ehlo()
         conn.starttls()
+        conn.ehlo()
     if c.smtp_username:
         conn.login(c.smtp_username, c.smtp_password)
     return conn
 
 
-def main():
+def read_message():
+    return sys.stdin.read()
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(prog='muttdown')
     parser.add_argument('-v', '--version', action='version', version='%s %s' % (__name__, __version__))
     parser.add_argument(
@@ -152,7 +153,7 @@ def main():
         help='Pass mail through to sendmail for delivery'
     )
     parser.add_argument('addresses', nargs='+')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     c = config.Config()
     try:
@@ -163,7 +164,7 @@ def main():
         sys.stderr.flush()
         return 1
 
-    message = sys.stdin.read()
+    message = read_message()
 
     mail = email.message_from_string(message)
 
@@ -176,7 +177,12 @@ def main():
         cmd = c.sendmail.split() + ['-f', args.envelope_from] + args.addresses
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
-        proc.communicate(rebuilt.as_string().encode('utf-8'))
+        msg = rebuilt.as_string()
+        if sys.version_info > (3, 0):
+            msg = msg.encode('utf-8')
+        proc.stdin.write(msg)
+        proc.stdin.close()
+        proc.wait()
         return proc.returncode
     else:
         conn = smtp_connection(c)
