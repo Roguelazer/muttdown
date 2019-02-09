@@ -1,6 +1,7 @@
 NEXT
 ====
 - Fix regression in headers from 0.3.0 with some multipart/signed messages
+- Fix regression in passthrough mode from 0.3.3 on Python 2; add better testing
 
 0.3.3
 =====
