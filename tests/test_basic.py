@@ -159,10 +159,14 @@ class MockSmtpServer(object):
     def start(self):
         self._t = threading.Thread(target=self.run)
         self._t.start()
-        self._started.wait()
+        if self._started.wait(5) is not True:
+            raise ValueError('SMTP Server Thread failed to start!')
 
     def run(self):
-        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        if hasattr(ssl, 'create_default_context'):
+            context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        else:
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.load_cert_chain(certfile='tests/data/cert.pem', keyfile='tests/data/key.pem')
         self._s.listen(128)
         self._started.set()
