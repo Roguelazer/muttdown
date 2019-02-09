@@ -59,7 +59,7 @@ def _move_headers(source, dest):
             del source[k]
 
 
-def convert_tree(message, config, indent=0):
+def convert_tree(message, config, indent=0, wrap_alternative=True):
     """Recursively convert a potentially-multipart tree.
 
     Returns a tuple of (the converted tree, whether any markdown was found)
@@ -73,19 +73,32 @@ def convert_tree(message, config, indent=0):
         if disposition == 'inline' and ct in ('text/plain', 'text/markdown'):
             converted = convert_one(message, config)
         if converted is not None:
-            new_tree = MIMEMultipart('alternative')
-            _move_headers(message, new_tree)
-            new_tree.attach(message)
-            new_tree.attach(converted)
-            return new_tree, True
+            if wrap_alternative:
+                new_tree = MIMEMultipart('alternative')
+                _move_headers(message, new_tree)
+                new_tree.attach(message)
+                new_tree.attach(converted)
+                return new_tree, True
+            else:
+                return converted, True
         return message, False
     else:
         if ct == 'multipart/signed':
             # if this is a multipart/signed message, then let's just
             # recurse into the non-signature part
+            new_root = MIMEMultipart('alternative')
+            if message.preamble:
+                new_root.preamble = message.preamble
+            _move_headers(message, new_root)
+            converted = None
             for part in message.get_payload():
                 if part.get_content_type() != 'application/pgp-signature':
-                    return convert_tree(part, config, indent=indent + 1)
+                    converted, did_conversion = convert_tree(part, config, indent=indent + 1,
+                                                             wrap_alternative=False)
+                    if did_conversion:
+                        new_root.attach(converted)
+            new_root.attach(message)
+            return new_root, did_conversion
         else:
             did_conversion = False
             new_root = MIMEMultipart(cs, message.get_charset())
