@@ -1,3 +1,7 @@
+NEXT
+====
+- Fix regression in headers from 0.3.0 with some multipart/signed messages
+
 0.3.3
 =====
 - Fix `-s` / smtp passthrough mode on Python 3
