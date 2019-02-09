@@ -1,5 +1,6 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from email.message import Message
 import tempfile
 import shutil
@@ -100,3 +101,37 @@ def test_with_css(config_with_css):
     assert text_part.get_payload(decode=True) == b'!m\n\nThis is a message'
     html_part = converted.get_payload()[1]
     assert html_part.get_payload(decode=True) == b'<p style="font-family: serif">This is a message</p>'
+
+
+def test_headers_when_multipart_signed(basic_config):
+    msg = MIMEMultipart('signed')
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.preamble = 'Outer preamble'
+
+    msg.attach(MIMEText("!m This is the main message body"))
+    msg.attach(MIMEApplication('signature here', 'pgp-signature', name='signature.asc'))
+
+    converted, _ = convert_tree(msg, basic_config)
+
+    assert converted['Subject'] == 'Test Message'
+    assert converted['From'] == 'from@example.com'
+    assert converted['To'] == 'to@example.com'
+
+    assert isinstance(converted, MIMEMultipart)
+    assert converted.preamble == 'Outer preamble'
+    assert len(converted.get_payload()) == 2
+    assert converted.get_content_type() == 'multipart/alternative'
+    html_part = converted.get_payload()[0]
+    original_signed_part = converted.get_payload()[1]
+    assert isinstance(html_part, MIMEText)
+    assert html_part.get_content_type() == 'text/html'
+    assert isinstance(original_signed_part, MIMEMultipart)
+    assert original_signed_part.get_content_type() == 'multipart/signed'
+    assert original_signed_part['Subject'] is None
+    text_part = original_signed_part.get_payload()[0]
+    signature_part = original_signed_part.get_payload()[1]
+    assert text_part.get_content_type() == 'text/plain'
+    assert signature_part.get_content_type() == 'application/pgp-signature'
