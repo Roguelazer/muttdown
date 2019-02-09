@@ -125,12 +125,17 @@ def smtp_connection(c):
     if not c.smtp_ssl:
         conn.ehlo()
         conn.starttls()
+        conn.ehlo()
     if c.smtp_username:
         conn.login(c.smtp_username, c.smtp_password)
     return conn
 
 
-def main():
+def read_message():
+    return sys.stdin.read()
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(prog='muttdown')
     parser.add_argument('-v', '--version', action='version', version='%s %s' % (__name__, __version__))
     parser.add_argument(
@@ -148,7 +153,7 @@ def main():
         help='Pass mail through to sendmail for delivery'
     )
     parser.add_argument('addresses', nargs='+')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     c = config.Config()
     try:
@@ -159,7 +164,7 @@ def main():
         sys.stderr.flush()
         return 1
 
-    message = sys.stdin.read()
+    message = read_message()
 
     mail = email.message_from_string(message)
 
@@ -176,6 +181,7 @@ def main():
         if sys.version_info > (3, 0):
             msg = msg.encode('utf-8')
         proc.stdin.write(msg)
+        proc.stdin.close()
         proc.wait()
         return proc.returncode
     else:

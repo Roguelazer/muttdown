@@ -4,9 +4,18 @@ from email.mime.application import MIMEApplication
 from email.message import Message
 import tempfile
 import shutil
+import socket
+import threading
+import ssl
+import select
+import time
+import os
+import sys
 
 import pytest
+import yaml
 
+from muttdown import main
 from muttdown.main import convert_tree
 from muttdown.main import process_message
 from muttdown.config import Config
@@ -135,3 +144,126 @@ def test_headers_when_multipart_signed(basic_config):
     signature_part = original_signed_part.get_payload()[1]
     assert text_part.get_content_type() == 'text/plain'
     assert signature_part.get_content_type() == 'application/pgp-signature'
+
+
+class MockSmtpServer(object):
+    def __init__(self):
+        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._s.bind(('127.0.0.1', 0))
+        self.address = self._s.getsockname()[0:2]
+        self._t = None
+        self._started = threading.Event()
+        self.messages = []
+        self.running = False
+
+    def start(self):
+        self._t = threading.Thread(target=self.run)
+        self._t.start()
+        self._started.wait()
+
+    def run(self):
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.load_cert_chain(certfile='tests/data/cert.pem', keyfile='tests/data/key.pem')
+        self._s.listen(128)
+        self._started.set()
+        self.running = True
+        while self.running:
+            r, _, x = select.select([self._s], [self._s], [self._s], 0.5)
+            if r:
+                start = time.time()
+                conn, addr = self._s.accept()
+                conn = context.wrap_socket(conn, server_side=True)
+                message = b''
+                conn.sendall(b'220 localhost SMTP Fake\r\n')
+                message += conn.recv(1024)
+                conn.sendall(b'250-localhost\r\n250 DSN\r\n')
+                # MAIL FROM
+                message += conn.recv(1024)
+                conn.sendall(b'250 2.1.0 Ok\r\n')
+                # RCPT TO
+                message += conn.recv(1024)
+                conn.sendall(b'250 2.1.0 Ok\r\n')
+                # DATA
+                message += conn.recv(6)
+                conn.sendall(b'354 End data with <CR><LF>.<CR><LF>\r\n')
+                while time.time() < start + 5:
+                    chunk = conn.recv(4096)
+                    if not chunk:
+                        break
+                    message += chunk
+                    if b'\r\n.\r\n' in message:
+                        break
+                conn.sendall(b'250 2.1.0 Ok\r\n')
+                message += conn.recv(1024)
+                conn.sendall(b'221 Bye\r\n')
+                conn.close()
+                self.messages.append((addr, message))
+
+    def stop(self):
+        if self._t is not None:
+            self.running = False
+            self._t.join()
+
+
+@pytest.fixture
+def smtp_server():
+    s = MockSmtpServer()
+    s.start()
+    try:
+        yield s
+    finally:
+        s.stop()
+
+
+def test_main_smtplib(tmp_path, smtp_server, mocker):
+    config_path = str(tmp_path / "config.yaml")
+    with open(config_path, 'w') as f:
+        yaml.dump({
+            'smtp_host': smtp_server.address[0],
+            'smtp_port': smtp_server.address[1],
+            'smtp_ssl': True
+        }, f)
+    msg = Message()
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.set_payload('This message has no sigil')
+    mocker.patch.object(main, 'read_message', return_value=msg.as_string())
+    main.main(['-c', config_path, '-f', 'from@example.com', 'to@example.com'])
+
+    assert len(smtp_server.messages) == 1
+    attr, transcript = smtp_server.messages[0]
+    assert b'Subject: Test Message' in transcript
+    assert b'no sigil' in transcript
+
+
+def test_main_passthru(tmp_path, mocker):
+    output_path = str(tmp_path / 'output')
+    sendmail_path = str(tmp_path / 'sendmail')
+    with open(sendmail_path, 'w') as f:
+        f.write('#!{0}\n'.format(sys.executable))
+        f.write('import sys\n')
+        f.write('output_path = "{0}"\n'.format(output_path))
+        f.write('open(output_path, "w").write(sys.stdin.read())\n')
+        f.write('sys.exit(0)')
+    os.chmod(sendmail_path, 0o750)
+    config_path = str(tmp_path / "config.yaml")
+    with open(config_path, 'w') as f:
+        yaml.dump({
+            'sendmail': sendmail_path
+        }, f)
+
+    msg = Message()
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.set_payload('This message has no sigil')
+    mocker.patch.object(main, 'read_message', return_value=msg.as_string())
+    main.main(['-c', config_path, '-f', 'from@example.com', '-s', 'to@example.com'])
+
+    with open(output_path, 'rb') as f:
+        transcript = f.read()
+    assert b'Subject: Test Message' in transcript
+    assert b'no sigil' in transcript
