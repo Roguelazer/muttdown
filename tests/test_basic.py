@@ -215,8 +215,8 @@ def smtp_server():
         s.stop()
 
 
-def test_main_smtplib(tmp_path, smtp_server, mocker):
-    config_path = str(tmp_path / "config.yaml")
+def test_main_smtplib(tempdir, smtp_server, mocker):
+    config_path = os.path.join(tempdir, 'config.yaml')
     with open(config_path, 'w') as f:
         yaml.dump({
             'smtp_host': smtp_server.address[0],
@@ -238,9 +238,9 @@ def test_main_smtplib(tmp_path, smtp_server, mocker):
     assert b'no sigil' in transcript
 
 
-def test_main_passthru(tmp_path, mocker):
-    output_path = str(tmp_path / 'output')
-    sendmail_path = str(tmp_path / 'sendmail')
+def test_main_passthru(tempdir, mocker):
+    output_path = os.path.join(tempdir, 'output')
+    sendmail_path = os.path.join(tempdir, 'sendmail')
     with open(sendmail_path, 'w') as f:
         f.write('#!{0}\n'.format(sys.executable))
         f.write('import sys\n')
@@ -248,7 +248,7 @@ def test_main_passthru(tmp_path, mocker):
         f.write('open(output_path, "w").write(sys.stdin.read())\n')
         f.write('sys.exit(0)')
     os.chmod(sendmail_path, 0o750)
-    config_path = str(tmp_path / "config.yaml")
+    config_path = os.path.join(tempdir, 'config.yaml')
     with open(config_path, 'w') as f:
         yaml.dump({
             'sendmail': sendmail_path
