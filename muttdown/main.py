@@ -29,7 +29,7 @@ def convert_one(part, config):
         text = text.decode('utf-8')
     if not text.startswith('!m'):
         return None
-    text = re.sub('\s*!m\s*', '', text, re.M)
+    text = re.sub(r'\s*!m\s*', '', text, re.M)
     if '\n-- \n' in text:
         pre_signature, signature = text.split('\n-- \n')
         md = markdown.markdown(pre_signature, output_format="html5")
@@ -186,7 +186,10 @@ def main(argv=None):
         return proc.returncode
     else:
         conn = smtp_connection(c)
-        conn.sendmail(args.envelope_from, args.addresses, rebuilt.as_string())
+        msg = rebuilt.as_string()
+        if sys.version_info > (3, 0):
+            msg = msg.encode('utf-8')
+        conn.sendmail(args.envelope_from, args.addresses, msg)
         conn.quit()
     return 0
 
