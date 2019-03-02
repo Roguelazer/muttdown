@@ -22,11 +22,21 @@ from . import __version__
 __name__ = 'muttdown'
 
 
-def convert_one(part, config):
+def convert_one(part, config, charset):
     text = part.get_payload(decode=True)
+    if part.get_charset():
+        charset = part.get_charset()
     if not isinstance(text, six.text_type):
-        # no, I don't know why decode=True sometimes fails to decode.
-        text = text.decode('utf-8')
+        # decode=True only decodes the base64/uuencoded nature, and
+        # will always return bytes; gotta decode it
+        if charset is not None:
+            text = text.decode(charset)
+        else:
+            try:
+                text = text.decode('ascii')
+            except UnicodeError:
+                # this is because of message.py:278 and seems like a hack
+                text = text.decode('raw-unicode-escape')
     if not text.startswith('!m'):
         return None
     text = re.sub(r'\s*!m\s*', '', text, re.M)
@@ -55,19 +65,21 @@ def _move_headers(source, dest):
             del source[k]
 
 
-def convert_tree(message, config, indent=0, wrap_alternative=True):
+def convert_tree(message, config, indent=0, wrap_alternative=True, charset=None):
     """Recursively convert a potentially-multipart tree.
 
     Returns a tuple of (the converted tree, whether any markdown was found)
     """
     ct = message.get_content_type()
     cs = message.get_content_subtype()
+    if charset is None:
+        charset = message.get_charset()
     if not message.is_multipart():
         # we're on a leaf
         converted = None
         disposition = message.get('Content-Disposition', 'inline')
         if disposition == 'inline' and ct in ('text/plain', 'text/markdown'):
-            converted = convert_one(message, config)
+            converted = convert_one(message, config, charset)
         if converted is not None:
             if wrap_alternative:
                 new_tree = MIMEMultipart('alternative')
@@ -90,7 +102,8 @@ def convert_tree(message, config, indent=0, wrap_alternative=True):
             for part in message.get_payload():
                 if part.get_content_type() != 'application/pgp-signature':
                     converted, did_conversion = convert_tree(part, config, indent=indent + 1,
-                                                             wrap_alternative=False)
+                                                             wrap_alternative=False,
+                                                             charset=charset)
                     if did_conversion:
                         new_root.attach(converted)
             new_root.attach(message)
@@ -102,7 +115,7 @@ def convert_tree(message, config, indent=0, wrap_alternative=True):
                 new_root.preamble = message.preamble
             _move_headers(message, new_root)
             for part in message.get_payload():
-                part, did_this_conversion = convert_tree(part, config, indent=indent + 1)
+                part, did_this_conversion = convert_tree(part, config, indent=indent + 1, charset=charset)
                 did_conversion |= did_this_conversion
                 new_root.attach(part)
             return new_root, did_conversion
