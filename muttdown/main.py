@@ -22,10 +22,17 @@ from . import __version__
 __name__ = 'muttdown'
 
 
+def get_charset_from_message_fragment(part):
+    cs = part.get_charset()
+    if cs:
+        return cs.output_charset
+    return None
+
+
 def convert_one(part, config, charset):
     text = part.get_payload(decode=True)
     if part.get_charset():
-        charset = part.get_charset()
+        charset = get_charset_from_message_fragment(part)
     if not isinstance(text, six.text_type):
         # decode=True only decodes the base64/uuencoded nature, and
         # will always return bytes; gotta decode it
@@ -73,7 +80,7 @@ def convert_tree(message, config, indent=0, wrap_alternative=True, charset=None)
     ct = message.get_content_type()
     cs = message.get_content_subtype()
     if charset is None:
-        charset = message.get_charset()
+        charset = get_charset_from_message_fragment(message)
     if not message.is_multipart():
         # we're on a leaf
         converted = None
