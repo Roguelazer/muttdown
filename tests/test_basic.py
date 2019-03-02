@@ -278,7 +278,10 @@ def test_main_passthru(tempdir, mocker):
 
 def test_raw_unicode(basic_config):
     raw_message = b'Date: Fri, 1 Mar 2019 17:54:06 -0800\nFrom: Test <test@example.com>\nTo: Test <test@example.com>\nSubject: Re: Fwd: Important: 2019 =?utf-8?Q?Securit?=\n =?utf-8?B?eSBVcGRhdGUg4oCU?=\nReferences: <BypjV000000000000000000000000000000000000000000000PNNK9E00HcUNxx_7QEaZBosNNgqKSw@sfdc.net>\n <CAPe=KFgfaFd5U7KX=3ugNs5vPzHkRgAij9md8TL-WX-ypEszug@mail.gmail.com>\nMIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\nContent-Disposition: inline\nContent-Transfer-Encoding: 8bit\nUser-Agent: Mutt/1.11.3 (2019-02-01)\n\nThis is a test\n\n\nOn Fri, Mar 01, 2019 at 03:08:35PM -0800, Test Wrote:\n> :)\n> \n> \n> \xc3\x98  Text\n> \n> \xc2\xb7       text\n-- \nend\n'  # noqa
-    mail = email.message_from_string(raw_message.decode('utf-8'))
+    if sys.version_info > (3, 0):
+        mail = email.message_from_string(raw_message.decode('utf-8'))
+    else:
+        mail = email.message_from_string(raw_message)
     converted = process_message(mail, basic_config)
     assert converted['From'] == 'Test <test@example.com>'
     assert 'Ø' in converted.get_payload()
