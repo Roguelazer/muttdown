@@ -152,7 +152,10 @@ def smtp_connection(c):
 
 
 def read_message():
-    return sys.stdin.read()
+    if sys.version_info > (3, 0):
+        return sys.stdin.bytes.read()
+    else:
+        return sys.stdin.read()
 
 
 def main(argv=None):
@@ -186,7 +189,10 @@ def main(argv=None):
 
     message = read_message()
 
-    mail = email.message_from_string(message)
+    if sys.version_info > (3, 0):
+        mail = email.message_from_bytes(message)
+    else:
+        mail = email.message_from_string(message)
 
     rebuilt = process_message(mail, c)
     rebuilt.set_unixfrom(args.envelope_from)

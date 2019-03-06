@@ -236,7 +236,7 @@ def test_main_smtplib(tempdir, smtp_server, mocker):
     msg['To'] = 'to@example.com'
     msg['Bcc'] = 'bananas'
     msg.set_payload('This message has no sigil')
-    mocker.patch.object(main, 'read_message', return_value=msg.as_string())
+    mocker.patch.object(main, 'read_message', return_value=msg.as_string().encode('utf-8'))
     main.main(['-c', config_path, '-f', 'from@example.com', 'to@example.com'])
 
     assert len(smtp_server.messages) == 1
@@ -267,7 +267,7 @@ def test_main_passthru(tempdir, mocker):
     msg['To'] = 'to@example.com'
     msg['Bcc'] = 'bananas'
     msg.set_payload('This message has no sigil')
-    mocker.patch.object(main, 'read_message', return_value=msg.as_string())
+    mocker.patch.object(main, 'read_message', return_value=msg.as_string().encode('utf-8'))
     main.main(['-c', config_path, '-f', 'from@example.com', '-s', 'to@example.com'])
 
     with open(output_path, 'rb') as f:
