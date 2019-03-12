@@ -153,7 +153,7 @@ def smtp_connection(c):
 
 def read_message():
     if sys.version_info > (3, 0):
-        return sys.stdin.bytes.read()
+        return sys.stdin.buffer.read()
     else:
         return sys.stdin.read()
 
