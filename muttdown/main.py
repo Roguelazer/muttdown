@@ -49,12 +49,13 @@ def convert_one(part, config, charset):
     text = re.sub(r'\s*!m\s*', '', text, re.M)
     if '\n-- \n' in text:
         pre_signature, signature = text.split('\n-- \n')
-        md = markdown.markdown(pre_signature, output_format="html5")
+        md = markdown.markdown(pre_signature, extensions=['extra'],
+                               output_format="html5")
         md += '\n<div class="signature" style="font-size: small"><p>-- <br />'
         md += '<br />'.join(signature.split('\n'))
         md += '</p></div>'
     else:
-        md = markdown.markdown(text)
+        md = markdown.markdown(text, extensions=['extra'])
     if config.css:
         md = '<style>' + config.css + '</style>' + md
         md = pynliner.fromString(md)
