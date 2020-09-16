@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name="muttdown",
-    version="0.3.4",
+    version="0.3.5",
     author="James Brown",
     author_email="Roguelazer@gmail.com",
     url="https://github.com/Roguelazer/muttdown",
@@ -33,11 +33,10 @@ setup(
         "Environment :: Console",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Intended Audience :: End Users/Desktop",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: ISC License (ISCL)",

@@ -1,3 +1,9 @@
+0.3.5
+=====
+- Fix some unicode handling (including, hopefully, fixing non-ASCII subject lines for real)
+- Drops support for Python 3.3 and Python 3.4 since we depend on libraries that have dropped support for them
+- Add support for Python 3.7 and Python 3.8
+
 0.3.4
 =====
 - Fix regression in headers from 0.3.0 with some multipart/signed messages
