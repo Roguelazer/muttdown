@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-with open('README.md', 'r') as f:
+with open("README.md", "r") as f:
     long_description = f.read()
 
 
@@ -12,23 +11,23 @@ setup(
     author_email="Roguelazer@gmail.com",
     url="https://github.com/Roguelazer/muttdown",
     license="ISC",
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=["tests"]),
     keywords=["email"],
     description="Sendmail replacement that compiles markdown into HTML",
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
-        'Markdown>=3.0,<4.0',
-        'PyYAML>=3.0',
-        'pynliner==0.8.0',
-        'six',
+        "Markdown>=3.0,<4.0",
+        "PyYAML>=3.0",
+        "pynliner==0.8.0",
+        "six",
     ],
     entry_points={
-        'console_scripts': [
-            'muttdown = muttdown.main:main',
+        "console_scripts": [
+            "muttdown = muttdown.main:main",
         ]
     },
-    python_requires='>=3.6',
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
@@ -43,5 +42,5 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: ISC License (ISCL)",
         "Topic :: Communications :: Email",
-    ]
+    ],
 )
