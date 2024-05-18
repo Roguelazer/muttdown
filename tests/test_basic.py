@@ -115,6 +115,24 @@ def test_with_css(config_with_css):
     assert html_part.get_payload(decode=True) == b'<p style="font-family: serif">This is a message</p>'
 
 
+def test_fenced(basic_config):
+    msg = Message()
+    msg['Subject'] = 'Test Message'
+    msg['From'] = 'from@example.com'
+    msg['To'] = 'to@example.com'
+    msg['Bcc'] = 'bananas'
+    msg.preamble = 'Outer preamble'
+
+    msg.set_payload("!m This is the main message body\n\n```\nsome code\n```\n")
+
+    converted, _ = convert_tree(msg, basic_config)
+    assert isinstance(converted, MIMEMultipart)
+    assert len(converted.get_payload()) == 2
+    html_part = converted.get_payload()[1]
+    assert html_part.get_payload(decode=True) == \
+        b'<p>This is the main message body</p>\n<pre><code>some code\n</code></pre>'
+
+
 def test_headers_when_multipart_signed(basic_config):
     msg = MIMEMultipart('signed')
     msg['Subject'] = 'Test Message'
