@@ -1,7 +1,7 @@
 muttdown
 ========
 
-[![Build Status](https://travis-ci.com/Roguelazer/muttdown.svg?branch=master)](https://travis-ci.com/Roguelazer/muttdown)
+[![Build Status](https://github.com/Roguelazer/muttdown/actions/workflows/ci.yml/badge.svg)](https://github.com/Roguelazer/muttdown/actions/workflows/ci.yml)
 
 `muttdown` is a sendmail-replacement designed for use with the [mutt][] email client which will transparently compile annotated `text/plain` mail into `text/html` using the [Markdown][] standard.  It will recursively walk the MIME tree and compile any `text/plain` or `text/markdown` part which begins with the sigil "!m" into Markdown, which it will insert alongside the original in a multipart/alternative container.
 
