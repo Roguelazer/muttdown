@@ -1,3 +1,8 @@
+NEXT
+====
+- Drop support ofr Python <3.6
+- Switch to github actions for CI
+
 0.3.5
 =====
 - Fix some unicode handling (including, hopefully, fixing non-ASCII subject lines for real)

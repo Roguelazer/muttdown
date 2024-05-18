@@ -60,7 +60,7 @@ Muttdown can also send its mail using the native `sendmail` if you have that set
 
 Installation
 ------------
-Install muttdown with `pip install muttdown` or by downloading this package and running `python setup.py install`. You will need the [PyYAML][] and [Python-Markdown][] libraries, as specified in `requirements.txt`. This should work with Python 2.7 or Python 3.5+.
+Install muttdown with `pip install muttdown` or by downloading this package and running `python setup.py install`. You will need the [PyYAML][] and [Python-Markdown][] libraries, as specified in `requirements.txt`. This should work with Python 3.6+.
 
 Usage
 -----

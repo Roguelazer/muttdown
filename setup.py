@@ -18,7 +18,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
-        'Markdown>=3.0',
+        'Markdown>=3.0,<4.0',
         'PyYAML>=3.0',
         'pynliner==0.8.0',
         'six',
@@ -28,15 +28,17 @@ setup(
             'muttdown = muttdown.main:main',
         ]
     },
+    python_requires='>=3.6',
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Intended Audience :: End Users/Desktop",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: ISC License (ISCL)",
