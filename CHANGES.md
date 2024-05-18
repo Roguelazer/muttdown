@@ -1,7 +1,9 @@
-NEXT
-====
-- Drop support ofr Python <3.6
+0.4.0
+=====
+- Drop support for Python <3.6
 - Switch to github actions for CI
+- Reformat entire project with `black` and add `pre-commit`
+- Add `assume_markdown` config option
 
 0.3.5
 =====

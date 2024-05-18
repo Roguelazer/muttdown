@@ -6,9 +6,9 @@ with open("README.md", "r") as f:
 
 setup(
     name="muttdown",
-    version="0.3.5",
+    version="0.4.0",
     author="James Brown",
-    author_email="Roguelazer@gmail.com",
+    author_email="roguelazer@roguelazer.com",
     url="https://github.com/Roguelazer/muttdown",
     license="ISC",
     packages=find_packages(exclude=["tests"]),
