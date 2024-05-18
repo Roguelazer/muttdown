@@ -42,9 +42,10 @@ def convert_one(part, config, charset):
             except UnicodeError:
                 # this is because of message.py:278 and seems like a hack
                 text = text.decode("raw-unicode-escape")
-    if not text.startswith("!m"):
-        return None
-    text = re.sub(r"\s*!m\s*", "", text, re.M)
+    if not config.assume_markdown:
+        if not text.startswith("!m"):
+            return None
+        text = re.sub(r"\s*!m\s*", "", text, re.M)
     if "\n-- \n" in text:
         pre_signature, signature = text.split("\n-- \n")
         md = markdown.markdown(

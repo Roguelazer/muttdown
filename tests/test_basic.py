@@ -310,3 +310,18 @@ def test_raw_unicode(basic_config):
     converted = process_message(mail, basic_config)
     assert converted["From"] == "Test <test@example.com>"
     assert "Ø" in converted.get_payload()
+
+
+def test_assume_markdown(basic_config):
+    msg = Message()
+    msg["Subject"] = "Test Message"
+    msg["From"] = "from@example.com"
+    msg["To"] = "to@example.com"
+    msg["Bcc"] = "bananas"
+    msg.set_payload("This message has no **sigil**")
+
+    basic_config.merge_config({"assume_markdown": True})
+
+    converted = process_message(msg, basic_config)
+    html_part = converted.get_payload()[1].get_payload(decode=True)
+    assert html_part == b"<p>This message has no <strong>sigil</strong></p>"

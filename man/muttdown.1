@@ -83,6 +83,8 @@ smtp_username: foo@bar.com
 smtp_password: foo
 .br
 css_file: ~/.muttdown.css
+.br
+assume_markdown: false
 .P
 If you prefer not to put your password in plaintext in a configuration file, you
 can instead specify the \fBsmtp_password_command\fR parameter to invoke a shell
@@ -106,6 +108,9 @@ have that set up (instead of doing SMTP itself). To do so, just leave the smtp
 options in the config file blank, set the \fBsendmail\fR option to the
 fully-qualified path to your \fBsendmail\fR binary, and run \fBmuttdown\fR with
 the \fB-s\fR flag
+.P
+If \fBassume_markdown\fR is true, then all input is assumed to be Markdown by
+default and the \fB!m\fR sigil does nothing.
 
 .SH AUTHORS
 \fBmuttdown\fR was written by James Brown <Roguelazer@gmail.com>.

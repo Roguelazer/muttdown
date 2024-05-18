@@ -46,6 +46,7 @@ Muttdown's configuration file is written using [YAML][]. Example:
     smtp_username: foo@bar.com
     smtp_password: foo
     css_file: ~/.muttdown.css
+    assume_markdown: false
 
 
 If you prefer not to put your password in plaintext in a configuration file, you can instead specify the `smtp_password_command` parameter to invoke a shell command to lookup your password. The command should output your password, followed by a newline, and no other text. On OS X, the following invocation will extract a generic "Password" entry with the application set to "mutt" and the title set to "foo@bar.com":
@@ -57,6 +58,8 @@ NOTE: If `smtp_ssl` is set to False, `muttdown` will do a non-SSL session and th
 The `css_file` should be regular CSS styling blocks; we use [pynliner][] to inline all CSS rules for maximum client compatibility.
 
 Muttdown can also send its mail using the native `sendmail` if you have that set up (instead of doing SMTP itself). To do so, just leave the smtp options in the config file blank, set the `sendmail` option to the fully-qualified path to your `sendmail` binary, and run muttdown with the `-s` flag
+
+If `assume_markdown` is true, then all input is assumed to be Markdown by default and the `!m` sigil does nothing.
 
 Installation
 ------------
