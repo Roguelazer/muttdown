@@ -20,7 +20,6 @@ setup(
         "Markdown>=3.0,<4.0",
         "PyYAML>=3.0",
         "pynliner==0.8.0",
-        "six",
     ],
     entry_points={
         "console_scripts": [

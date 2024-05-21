@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import argparse
 import email
 import email.iterators
@@ -13,7 +11,6 @@ from email.mime.text import MIMEText
 
 import markdown
 import pynliner
-import six
 
 from . import __version__, config
 
@@ -31,7 +28,7 @@ def convert_one(part, config, charset):
     text = part.get_payload(decode=True)
     if part.get_charset():
         charset = get_charset_from_message_fragment(part)
-    if not isinstance(text, six.text_type):
+    if not isinstance(text, str):
         # decode=True only decodes the base64/uuencoded nature, and
         # will always return bytes; gotta decode it
         if charset is not None:
@@ -214,8 +211,7 @@ def main(argv=None):
 
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
         msg = rebuilt.as_string()
-        if sys.version_info > (3, 0):
-            msg = msg.encode("utf-8")
+        msg = msg.encode("utf-8")
         proc.stdin.write(msg)
         proc.stdin.close()
         proc.wait()
@@ -223,8 +219,7 @@ def main(argv=None):
     else:
         conn = smtp_connection(c)
         msg = rebuilt.as_string()
-        if sys.version_info > (3, 0):
-            msg = msg.encode("utf-8")
+        msg = msg.encode("utf-8")
         conn.sendmail(args.envelope_from, args.addresses, msg)
         conn.quit()
     return 0
