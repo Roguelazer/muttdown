@@ -2,7 +2,6 @@ import copy
 import os.path
 from subprocess import check_output
 
-import six
 import yaml
 
 # largely copied from my earlier work in fakemtpd
@@ -43,8 +42,7 @@ class ConfigError(Exception):
         return "%s(%r)" % (self.__class__.__name__, self.message)
 
 
-@six.add_metaclass(_ParamsAsProps)
-class Config(object):
+class Config(metaclass=_ParamsAsProps):
     _parameters = {
         "smtp_host": "127.0.0.1",
         "smtp_port": 25,
